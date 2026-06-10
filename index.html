@@ -793,14 +793,13 @@ function antText(d){
   if(d.content&&d.content.length){var o='';for(var i=0;i<d.content.length;i++){var b=d.content[i];if(b&&b.type==='text'&&typeof b.text==='string')o+=b.text;}return o;}
   return '';
 }
+var BACKEND='/.netlify/functions/generate';
+function gatePass(){try{return localStorage.getItem('khcl_gate')||'';}catch(e){return '';}}
+function setGatePass(v){try{localStorage.setItem('khcl_gate',v||'');}catch(e){}}
+function backendText(payload){return fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pass:gatePass(),kind:'text',payload:payload})}).then(function(r){return r.json().then(function(d){if(!r.ok||!d||d.error){var e=new Error((d&&d.error)||('Error '+r.status));e.status=r.status;throw e;}return d.data;});});}
+function backendImage(payload){return fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pass:gatePass(),kind:'image',payload:payload})}).then(function(r){return r.json().then(function(d){if(!r.ok||!d||d.error){var e=new Error((d&&d.error)||('Error '+r.status));e.status=r.status;throw e;}return d.data;});});}
 function callClaude(key,form,selKeys,lang){
-  key=sanitizeKey(key);
-  if(!key)throw new Error('API key missing');
-  return fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:ANTH_MODEL,max_tokens:8000,system:makeSYS(selKeys,lang),messages:[{role:'user',content:buildPrompt(form)}]})
-  }).then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error((e.error&&e.error.message)||'Error '+r.status);});return r.json();})
+  return backendText({model:ANTH_MODEL,max_tokens:8000,system:makeSYS(selKeys,lang),messages:[{role:'user',content:buildPrompt(form)}]})
   .then(function(d){
     var raw=antText(d);
     raw=raw.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g,' ');
@@ -870,9 +869,9 @@ function SetupModal(props){
   var _f=useState(c.defaultFee||''),fee=_f[0],setFee=_f[1];
   var _lo=useState(c.logo||''),logo=_lo[0],setLogo=_lo[1];
   var _ac=useState(c.accent||'#2DD4BF'),accent=_ac[0],setAccent=_ac[1];
-  var _k=useState(props.apiKey||''),ak=_k[0],setAk=_k[1];var _aak=useState(props.anthKey||''),aak=_aak[0],setAak=_aak[1];
+  var _gp=useState(props.gatePass||''),gp=_gp[0],setGp=_gp[1];
   var _e=useState(''),err=_e[0],setErr=_e[1];
-  function save(){if(!name.trim()){setErr('Club name is required');return;}var nc={name:name.trim(),motto:motto.trim(),tagline:tag.trim(),defaultFee:fee.trim(),logo:logo,accent:accent};saveClub(nc);props.onSave(nc,sanitizeKey(ak),sanitizeKey(aak));}
+  function save(){if(!name.trim()){setErr('Club name is required');return;}if(!gp.trim()){setErr('Access password is required');return;}var nc={name:name.trim(),motto:motto.trim(),tagline:tag.trim(),defaultFee:fee.trim(),logo:logo,accent:accent};saveClub(nc);props.onSave(nc,gp.trim());}
   return React.createElement('div',{style:{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:100,padding:20}},
     React.createElement('div',{style:{width:'100%',maxWidth:440,background:A.panel,border:'1px solid '+A.border,borderRadius:18,boxShadow:'0 20px 60px rgba(0,0,0,0.5)',maxHeight:'90vh',overflowY:'auto'}},
       React.createElement('div',{style:{padding:'26px 28px 0'}},
@@ -886,7 +885,7 @@ function SetupModal(props){
         (!props.firstRun)&&React.createElement(FI,{label:'Default Entrance Fee',value:fee,onChange:setFee,ph:'Entry fee',opt:true,hint:'Pre-fills each meeting · blank = FREE'}),
         React.createElement('div',{style:{marginBottom:14}},React.createElement('div',{style:{fontSize:13,color:A.text2,fontWeight:500,marginBottom:8}},'Club Logo ',React.createElement('span',{style:{color:A.text3,fontSize:11}},'optional')),React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12}},logo&&React.createElement('img',{src:logo,style:{width:44,height:44,borderRadius:'50%',objectFit:'cover',border:'1px solid '+A.border}}),React.createElement('label',{style:{display:'inline-flex',alignItems:'center',gap:8,padding:'8px 13px',background:A.card2,border:'1px dashed '+A.border,borderRadius:9,cursor:'pointer',fontSize:13,color:A.text2}},logo?'Replace':'↑ Upload logo',React.createElement('input',{type:'file',accept:'image/*',onChange:function(e){var fl=e.target.files&&e.target.files[0];if(fl)resizeImg(fl,240,setLogo);},style:{display:'none'}})),logo&&React.createElement('button',{onClick:function(){setLogo('');},style:{background:'transparent',border:'none',color:A.red,fontSize:12,cursor:'pointer'}},'remove'))),
         React.createElement('div',{style:{marginBottom:14}},React.createElement('div',{style:{fontSize:13,color:A.text2,fontWeight:500,marginBottom:8}},'Accent Colour'),React.createElement('div',{style:{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}},[{l:'Teal',v:'#2DD4BF'},{l:'Gold',v:'#E6B450'},{l:'Coral',v:'#FF6B61'},{l:'Violet',v:'#8B7CF6'},{l:'Sky',v:'#4DA3FF'}].map(function(op){return React.createElement('button',{key:op.v,onClick:function(){setAccent(op.v);},title:op.l,style:{width:30,height:30,borderRadius:'50%',background:op.v,border:accent===op.v?'3px solid '+A.text:'2px solid '+A.border,cursor:'pointer',padding:0}});}),React.createElement('input',{value:accent,onChange:function(e){setAccent(e.target.value);},style:{width:92,background:A.card2,border:'1px solid '+A.border,borderRadius:8,color:A.text,padding:'7px 10px',fontSize:13,outline:'none'},placeholder:'#hex'}))),
-        (!props.hasHardKey||!props.hasHardAnth)&&React.createElement('div',{style:{marginTop:6,paddingTop:16,borderTop:'1px solid '+A.border}},!props.hasHardAnth&&React.createElement(FI,{label:'Anthropic API Key',value:aak,onChange:setAak,ph:'sk-ant-...',pw:true,hint:'console.anthropic.com · powers all writing · this browser only'}),!props.hasHardKey&&React.createElement(FI,{label:'OpenAI API Key',value:ak,onChange:setAk,ph:'sk-... or sk-proj-...',pw:true,hint:'platform.openai.com · powers image generation · this browser only'})),
+        React.createElement('div',{style:{marginTop:6,paddingTop:16,borderTop:'1px solid '+A.border}},React.createElement(FI,{label:'Access Password',value:gp,onChange:setGp,ph:'the password you were given',pw:true,hint:'Unlocks the writing and image tools'})),
         err&&React.createElement('div',{style:{color:A.red,fontSize:13,margin:'4px 0 12px',padding:'9px 12px',background:'rgba(255,107,97,0.1)',borderRadius:8}},err),
         React.createElement('div',{style:{display:'flex',gap:10,marginTop:10}},
           React.createElement('button',{onClick:save,style:{flex:1,padding:13,background:GRAD,border:'none',color:'#fff',fontSize:14,fontWeight:600,cursor:'pointer',borderRadius:10}},props.firstRun?'Get Started →':'Save'),
@@ -1032,7 +1031,7 @@ function App(){
   var hardKey=MY_OPENAI_KEY?sanitizeKey(MY_OPENAI_KEY):'';
   var _ck=useState(loadClub()),club=_ck[0],setClub=_ck[1];
   var _ak=useState(hardKey||(function(){try{return localStorage.getItem('khcl_key')||'';}catch(e){return '';}})()),apiKey=_ak[0],setApiKey=_ak[1];var hardAnth=MY_ANTHROPIC_KEY?sanitizeKey(MY_ANTHROPIC_KEY):'';var _aak=useState(hardAnth||(function(){try{return localStorage.getItem('khcl_akey')||'';}catch(e){return '';}})()),anthKey=_aak[0],setAnthKey=_aak[1];var _bgr=useState(false),bgRemoving=_bgr[0],setBgRemoving=_bgr[1];
-  var _su=useState(!loadClub()),setupOpen=_su[0],setSetupOpen=_su[1];
+  var _su=useState(!loadClub()||!gatePass()),setupOpen=_su[0],setSetupOpen=_su[1];
   var _br=useState(''),brief=_br[0],setBrief=_br[1];
   var _hs=useState(false),hasSp=_hs[0],setHasSp=_hs[1];
   var _sn=useState(''),spName=_sn[0],setSpName=_sn[1];
@@ -1151,13 +1150,13 @@ function App(){
   function addVP(){setPEdit(function(pp){var arr=(pp.value_points||[]).slice();if(arr.length<3)arr.push({title:'',sub:''});return Object.assign({},pp,{value_points:arr});});}
   function rmVP(i){setPEdit(function(pp){var arr=(pp.value_points||[]).slice();arr.splice(i,1);return Object.assign({},pp,{value_points:arr});});}
   function writePrompt(){
-    if(!anthKey){setError('Add your Anthropic (writing) key in Settings');setSetupOpen(true);return;}
+    if(!gatePass()){setError('Enter your access password in Settings');setSetupOpen(true);return;}
     var pp=pEdit||(result&&result.poster)||{};
     var styleHint=IMG_STYLES[imgStyle]||'';
     var ctx='Meeting: '+(brief||mtype||'a Toastmasters club meeting')+'\nHeadline: '+((pp.headline||'')+' '+(pp.headline_accent||''))+'\nUser idea: '+(imgIntent||'(none given)')+'\nChosen style direction: '+styleHint;
     var sys='You write ONE image-generation prompt for a FREE diffusion model (Flux) to create the visual for a Toastmasters meeting poster. The model is BAD at realistic human faces, so favour abstract, symbolic, object or atmospheric imagery; if people appear, show them only as silhouettes, from behind, distant, or motion-blurred — NEVER close-up faces or detailed hands. Describe subject, composition, lighting, mood and colour vividly. No text or logos in the image. Keep it under 55 words. Respond with ONLY the prompt text — no quotes, no preamble, no markdown.';
     setWriting(true);setError(null);
-    fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':sanitizeKey(anthKey),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:ANTH_MODEL,max_tokens:2000,system:sys,messages:[{role:'user',content:ctx}]})}).then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error((e.error&&e.error.message)||'Error');});return r.json();}).then(function(d){var t=antText(d).replace(/^["\'\s]+|["\'\s]+$/g,'').trim();if(t)setImgPrompt(t);}).catch(function(e){setError('Could not write a prompt — try again');}).then(function(){setWriting(false);});
+    backendText({model:ANTH_MODEL,max_tokens:2000,system:sys,messages:[{role:'user',content:ctx}]}).then(function(d){var t=antText(d).replace(/^["\'\s]+|["\'\s]+$/g,'').trim();if(t)setImgPrompt(t);}).catch(function(e){setError('Could not write a prompt — try again');}).then(function(){setWriting(false);});
   }
   function persistVersions(arr){var a=arr.slice(0,20);for(var t=0;t<5;t++){try{localStorage.setItem('khcl_versions_v1',JSON.stringify(a));return a;}catch(e){a=a.slice(0,Math.max(0,a.length-1));}}return a;}
   function snapState(){return {brief:brief,hasSp:hasSp,spName:spName,spTitle:spTitle,spKPs:spKPs,fee:fee,mtype:mtype,pEdit:pEdit,dEdit:dEdit,colAccent:colAccent,colAccent2:colAccent2,colBg:colBg,hdrScale:hdrScale,hlScale:hlScale,hlBr:hlBr,accBr:accBr,hlCase:hlCase,subScale:subScale,cardScale:cardScale,infoScale:infoScale,addrScale:addrScale,spkScale:spkScale,spkPosY:spkPosY,spkPosX:spkPosX,spkCredY:spkCredY,edBandH:edBandH,bgFade:bgFade,bgFadeAmt:bgFadeAmt,showCards:showCards,showBio:showBio,spkRight:spkRight,imgFit:imgFit,imgW:imgW,imgZoom:imgZoom,imgX:imgX,imgY:imgY,imgFade:imgFade,typeface:typeface,imgSide:imgSide,sel:sel,result:result,imgPrompt:imgPrompt,imgIntent:imgIntent,pFmt:pFmt,imgStyle:imgStyle,imgRatio:imgRatio,bw:bw,lang:lang};}
@@ -1165,7 +1164,7 @@ function App(){
   function restoreVersion(v){var s=v.st||{};setBrief(s.brief||'');setHasSp(!!s.hasSp);setSpName(s.spName||'');setSpTitle(s.spTitle||'');setSpKPs(s.spKPs||'');setFee(s.fee||'');if(s.spPhoto!==undefined)setSpPhoto(s.spPhoto);setMtype(s.mtype||'chapter');setPEdit(s.pEdit||null);setDEdit(s.dEdit||null);if(s.colAccent)setColAccent(s.colAccent);if(s.colAccent2)setColAccent2(s.colAccent2);if(s.colBg)setColBg(s.colBg);if(s.qrPhoto!==undefined)setQrPhoto(s.qrPhoto);setHdrScale(s.hdrScale||1);setHlScale(s.hlScale||1);setHlBr(!!s.hlBr);setAccBr(!!s.accBr);setHlCase(s.hlCase||'caps');setSubScale(s.subScale||1);setCardScale(s.cardScale||1);setInfoScale(s.infoScale||1);setAddrScale(s.addrScale||1);setSpkScale(s.spkScale||1);setSpkPosY(s.spkPosY||0);setSpkPosX(s.spkPosX||0);setSpkCredY(s.spkCredY||0);setEdBandH(s.edBandH||46);setBgFade(!!s.bgFade);setBgFadeAmt(s.bgFadeAmt==null?0.22:s.bgFadeAmt);setShowCards(s.showCards!==false);setShowBio(!!s.showBio);setSpkRight(!!s.spkRight);setImgFit(s.imgFit||'cover');if(s.imgW!=null)setImgW(s.imgW);if(s.imgZoom!=null)setImgZoom(s.imgZoom);if(s.imgX!=null)setImgX(s.imgX);if(s.imgY!=null)setImgY(s.imgY);if(s.imgFade!=null)setImgFade(s.imgFade);if(s.typeface)setTypeface(s.typeface);setImgSide(s.imgSide||'right');if(s.sel)setSel(s.sel);setResult(s.result||null);setImgPrompt(s.imgPrompt||'');setImgIntent(s.imgIntent||'');setPFmt(s.pFmt||'poster');if(s.imgUrl!==undefined)setImgUrl(s.imgUrl);if(s.imgStyle!=null)setImgStyle(s.imgStyle);if(s.imgRatio!=null)setImgRatio(s.imgRatio);setBw(!!s.bw);setLang(s.lang||'auto');setTab('poster');}
   function deleteVersion(id){var arr=persistVersions(versions.filter(function(x){return x.id!==id;}));setVersions(arr);}
   function regenChannel(k){
-    if(!anthKey){setError('Add your Anthropic (writing) key in Settings');setSetupOpen(true);return;}
+    if(!gatePass()){setError('Enter your access password in Settings');setSetupOpen(true);return;}
     if(!result||!result[k])return;
     setCvLoading(true);setError(null);
     callClaude(anthKey,buildForm(),[k],lang).then(function(p){
@@ -1175,24 +1174,22 @@ function App(){
   }
   function pickVariant(k,idx){var cur=cvar[k];if(!cur||!cur.list[idx])return;var pick=cur.list[idx];setCvar(function(cv){var c=Object.assign({},cv);c[k]=Object.assign({},c[k],{idx:idx});return c;});setResult(function(r){var n=Object.assign({},r);n[k]=pick;return n;});}
   function regenReasons(){
-    if(!anthKey){setError('Add your Anthropic (writing) key in Settings');setSetupOpen(true);return;}
+    if(!gatePass()){setError('Enter your access password in Settings');setSetupOpen(true);return;}
     var pp=pEdit||(result&&result.poster)||{};
     var ctx='Meeting brief: '+(brief||mtype||'a Toastmasters club meeting')+'\nHeadline: '+((pp.headline||'')+' '+(pp.headline_accent||''));
     var sys='You write promo for a Toastmasters club meeting aimed at curious newcomers (zero jargon). Return THREE fresh, concrete reasons to attend, phrased differently from the obvious. Each: a punchy 2-3 word title + a one-line plain description (max ~12 words). Make the third reason reassure first-timers that everyone is welcome. Respond with ONLY this JSON, no markdown, no preamble: {\"value_points\":[{\"title\":\"\",\"sub\":\"\"},{\"title\":\"\",\"sub\":\"\"},{\"title\":\"\",\"sub\":\"\"}]}';
     setRegen(true);setError(null);
-    fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':sanitizeKey(anthKey),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:ANTH_MODEL,max_tokens:2000,system:sys,messages:[{role:'user',content:ctx}]})}).then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error((e.error&&e.error.message)||'Error');});return r.json();}).then(function(d){var raw=antText(d);var a=raw.indexOf('{'),z=raw.lastIndexOf('}');var obj=JSON.parse(raw.slice(a,z+1));if(obj&&obj.value_points&&obj.value_points.length){setPEdit(function(pp){return Object.assign({},pp||{},{value_points:obj.value_points.slice(0,3)});});}}).catch(function(e){setError('Could not regenerate reasons — try again');}).then(function(){setRegen(false);});
+    backendText({model:ANTH_MODEL,max_tokens:2000,system:sys,messages:[{role:'user',content:ctx}]}).then(function(d){var raw=antText(d);var a=raw.indexOf('{'),z=raw.lastIndexOf('}');var obj=JSON.parse(raw.slice(a,z+1));if(obj&&obj.value_points&&obj.value_points.length){setPEdit(function(pp){return Object.assign({},pp||{},{value_points:obj.value_points.slice(0,3)});});}}).catch(function(e){setError('Could not regenerate reasons — try again');}).then(function(){setRegen(false);});
   }
   function mkSlider(label,val,mn,mx,st,onCh,unit){return React.createElement('div',{key:label,style:{display:'flex',alignItems:'center',gap:10,marginBottom:8}},React.createElement('span',{style:{fontSize:11,color:A.text3,width:72,flexShrink:0,textTransform:'uppercase',letterSpacing:'0.5px'}},label),React.createElement('input',{type:'range',min:mn,max:mx,step:st,value:val,onChange:function(e){onCh(parseFloat(e.target.value));},style:{flex:1,accentColor:A.teal,cursor:'pointer'}}),React.createElement('span',{style:{fontSize:11,color:A.text2,width:44,flexShrink:0,textAlign:'right'}},unit?(val+unit):(Math.round(val*100)+'%')));}
   function generate(){
     if(!brief.trim()){setError('Paste the meeting details first');return;}
-    if(!anthKey){setError('Add your Anthropic (writing) key in Settings');setSetupOpen(true);return;}
+    if(!gatePass()){setError('Enter your access password in Settings');setSetupOpen(true);return;}
     setError(null);setLoading(true);setResult(null);setImgUrl(null);
     callClaude(anthKey,buildForm(),sel,lang).then(function(p){setResult(p);setCvar({});setImgPrompt(p.image_prompt||'');setPEdit(p.poster||{});setDEdit(p.parsed||{});setTab('poster');}).catch(function(e){setError(e.message||'Error');}).then(function(){setLoading(false);});
   }
   function genGPT(prompt,size,quality,cb){
-    var key=sanitizeKey(apiKey);if(!key){cb(null,'no key');return;}
-    fetch('https://api.openai.com/v1/images/generations',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:'gpt-image-1',prompt:prompt,n:1,size:size,quality:quality})})
-    .then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error((e.error&&e.error.message)||('OpenAI error '+r.status));});return r.json();})
+    backendImage({model:'gpt-image-1',prompt:prompt,n:1,size:size,quality:quality})
     .then(function(d){var b=d&&d.data&&d.data[0]&&d.data[0].b64_json;if(!b)throw new Error('No image returned');cb('data:image/png;base64,'+b);})
     .catch(function(e){cb(null,e.message||'OpenAI error');});
   }
@@ -1202,7 +1199,6 @@ function App(){
     setError(null);setImgLoading(true);setImgUrl(null);
     var r=IMG_RATIOS[imgRatio];
     var full=p+', '+(IMG_STYLES[imgStyle]||IMG_STYLES[0])+', no text, no words';
-    if(sanitizeKey(apiKey)){var gs=(r.w>r.h)?'1536x1024':(r.h>r.w?'1024x1536':'1024x1024');genGPT(full,gs,'medium',function(du,err){if(du){setImgUrl(du);setSpPhoto(du);setImgLoading(false);}else{setImgLoading(false);setError('OpenAI image failed: '+(err||'unknown')+' — check your image key & billing.');}});return;}
     var tries=[{m:'flux',co:true,clean:true},{m:'turbo',co:false,clean:false}];
     var go=function(i){
       if(i>=tries.length){setImgLoading(false);setError('The free image service (Pollinations) did not respond. It allows roughly one image every 15 seconds for anonymous use and is sometimes down. Wait ~20 seconds and try again, or use Upload Image — or the Typographic style, which needs no photo.');return;}
@@ -1214,7 +1210,7 @@ function App(){
       img.onerror=function(){if(done)return;done=true;clearTimeout(to);go(i+1);};
       img.src=url;
     };
-    go(0);
+    var gs=(r.w>r.h)?'1536x1024':(r.h>r.w?'1024x1536':'1024x1024');genGPT(full,gs,'medium',function(du,err){if(du){setImgUrl(du);setSpPhoto(du);setImgLoading(false);}else{go(0);}});
   }
 
   function genBg(){
@@ -1222,7 +1218,6 @@ function App(){
     if(!p){setError('No image prompt yet — generate content first');return;}
     setError(null);setImgLoading(true);
     var full=p+', '+(IMG_STYLES[imgStyle]||IMG_STYLES[0])+', editorial photograph, dramatic, no text, no words';
-    if(sanitizeKey(apiKey)){genGPT(full,'1024x1536','medium',function(du,err){if(du){setImgUrl(du);setSpPhoto(du);setImgLoading(false);}else{setImgLoading(false);setError('OpenAI image failed: '+(err||'unknown')+'.');}});return;}
     var tries=[{m:'flux',co:true,clean:true},{m:'turbo',co:false,clean:false}];
     var go=function(i){
       if(i>=tries.length){setImgLoading(false);setError('The free image service (Pollinations) did not respond. It allows roughly one image every 15 seconds for anonymous use and is sometimes down. Wait ~20 seconds and try again, or use Upload Image — or the Typographic style, which needs no photo.');return;}
@@ -1234,7 +1229,7 @@ function App(){
       img.onerror=function(){if(done)return;done=true;clearTimeout(to);go(i+1);};
       img.src=url;
     };
-    go(0);
+    genGPT(full,'1024x1536','medium',function(du,err){if(du){setImgUrl(du);setSpPhoto(du);setImgLoading(false);}else{go(0);}});
   }
 
   function comicStylePrompt(){
@@ -1244,7 +1239,6 @@ function App(){
   function genOnePanel(scene,pos,cb){
     var zone=(pos==='bottom')?'bottom':'top';var opp=(zone==='bottom')?'upper':'lower';
     var full=(scene||'a lively meeting moment')+', the entire '+zone+' third of the frame MUST be empty open background (plain wall, sky or empty space) with absolutely no people, heads, hats or faces in that area, and every character placed so their face sits well inside the '+opp+' part of the frame, leaving the '+zone+' band fully clear for a speech bubble, '+((recapCast&&recapCast.trim())?recapCast.trim()+', ':'')+comicStylePrompt();
-    if(sanitizeKey(apiKey)){genGPT(full,'1024x1024',comicDetail,function(du){cb(du||null);});return;}
     var tries=[{m:'flux',co:true},{m:'turbo',co:false}];
     var go=function(i){
       if(i>=tries.length){cb(null);return;}
@@ -1256,7 +1250,7 @@ function App(){
       img.onerror=function(){if(done)return;done=true;clearTimeout(to);go(i+1);};
       img.src=url;
     };
-    go(0);
+    genGPT(full,'1024x1024',comicDetail,function(du){if(du){cb(du);}else{go(0);}});
   }
   function genAllPanels(panels){
     setPanelsGenerating(true);
@@ -1283,15 +1277,9 @@ function App(){
   function callClaudeRecap(key,notes,title,cast,count){
     var _qs=[];try{_qs=JSON.parse(localStorage.getItem('khcl_quotes_v1')||'[]')||[];}catch(e){}
     var qHint=(_qs&&_qs.length)?'\nREAL MEMBER QUOTES (use one or two only if they fit naturally, as captions or dialogue): '+_qs.slice(0,5).map(function(q){return '\u201c'+q.t+'\u201d'+(q.n?' - '+q.n:'');}).join(' | '):'';
-    key=sanitizeKey(key);
-    if(!key)throw new Error('API key missing');
     var sys='You are a witty comic-strip writer making a fun post-meeting recap for a Toastmasters club (a friendly public-speaking club). Turn the notes into a short newspaper-style cartoon. Write for outsiders: NO insider jargon. Keep it warm, light and a little funny. Return ONLY valid JSON, no markdown, exactly this shape: {"title":"short punchy comic title, max 5 words","recap_text":"a warm 2 to 3 sentence recap, friendly and shareable for WeChat or LinkedIn, no jargon","panels":[{"caption":"short caption under the panel, max 10 words","dialogue":["a short line spoken by one person (max 9 words)","a short natural reply by another (max 9 words)"],"scene":"a vivid visual description of the scene for an illustrator; describe generic stylized people by role (a nervous first-time speaker, a cheerful host, a clapping audience); do NOT name real individuals; do NOT put any text, letters, words, signs or speech bubbles in the scene","speech_pos":"top or bottom: whichever part of this scene is open background and free of faces, so a speech bubble can sit there without covering anyone"}]}. Rules: use exactly the number of panels requested in the user message, forming a clear arc (arrival and setup, a highlight or two, a fun climax, a warm closing). Each scene must be drawable as a single image with zero written words in it. Make the dialogue a natural back-and-forth between the people in the panel: 1 to 3 short alternating lines that sound like real conversation, not one stiff statement; use an empty array only for a wordless beat. Let the lines connect across panels so the whole strip reads as one flowing story. If a CAST AND SETTING note is provided, every scene must reflect that described group of people (apparent ethnicity, gender, age range, dress) and that venue, kept visually consistent across all panels. Prefer scenes with just one or two clearly drawn people rather than a large crowd, so faces and bodies render cleanly. For each panel choose speech_pos (top or bottom) as the area you will keep free of faces, and compose the scene so the people sit in the opposite area, leaving that zone as open background. Make the dialogue EXPRESSIVE and full of personality: natural interjections, real emotion, emphasis and varied punctuation (for example "Wait, seriously?!", "Honestly? Terrifying.", "Oh, you will be back."), never flat or formal.';
     var user='CLUB: '+((club&&club.name)||'our club')+'\nMEETING TITLE OR THEME: '+(title||'(none given)')+'\nWHAT HAPPENED AT THE MEETING:\n'+notes+((cast&&cast.trim())?'\nCAST AND SETTING (apply to every scene): '+cast.trim():'')+'\nPANELS: produce exactly '+(count||6)+' panels telling one connected story.'+qHint;
-    return fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:ANTH_MODEL,max_tokens:4000,system:sys,messages:[{role:'user',content:user}]})
-    }).then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error((e.error&&e.error.message)||'Error '+r.status);});return r.json();})
+    return backendText({model:ANTH_MODEL,max_tokens:4000,system:sys,messages:[{role:'user',content:user}]})
     .then(function(d){
       var raw=antText(d);
       raw=raw.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g,' ').replace(/\r\n/g,' ').replace(/[\r\n]/g,' ');
@@ -1310,7 +1298,7 @@ function App(){
   }
   function genRecap(){
     if(!recapNotes.trim()){setRecapErr('Tell me what happened at the meeting first');return;}
-    if(!anthKey){setRecapErr('Add your Anthropic (writing) key in Settings');setSetupOpen(true);return;}
+    if(!gatePass()){setRecapErr('Enter your access password in Settings');setSetupOpen(true);return;}
     setRecapErr(null);setComicLoading(true);setComic(null);setPanelImgs([]);setPanelLoad([]);
     callClaudeRecap(anthKey,recapNotes,recapTitle,recapCast,parseInt(comicPanels,10)).then(function(c){
       if(!c||!c.panels||!c.panels.length)throw new Error('No panels came back — try again.');
@@ -1340,7 +1328,7 @@ function App(){
     if(src&&/^https?:/i.test(src)){var im=new Image();im.crossOrigin='anonymous';im.onload=function(){try{var c=document.createElement('canvas');c.width=im.naturalWidth||1080;c.height=im.naturalHeight||1350;c.getContext('2d').drawImage(im,0,0);cap(c.toDataURL('image/png'));}catch(e){cap(null);}};im.onerror=function(){cap(null);};im.src=src;}else{cap(null);}
   }
   function openFull(){var _F=FORMATS[pFmt]||FORMATS.poster;var html=pBase(_F.w,_F.h)+slideHTMLnow()+'</body></html>';var blob=new Blob([html],{type:'text/html'});var url=URL.createObjectURL(blob);window.open(url,'_blank');setTimeout(function(){URL.revokeObjectURL(url);},15000);}
-  if(setupOpen)return React.createElement(SetupModal,{club:club,apiKey:apiKey===hardKey?'':apiKey,hasHardKey:!!hardKey,anthKey:anthKey===hardAnth?'':anthKey,hasHardAnth:!!hardAnth,firstRun:!club,onSave:function(c,k,ak){setClub(c);if(k){setApiKey(k);try{localStorage.setItem('khcl_key',k);}catch(e){}}if(ak){setAnthKey(ak);try{localStorage.setItem('khcl_akey',ak);}catch(e){}}setSetupOpen(false);},onClose:function(){setSetupOpen(false);}});
+  if(setupOpen)return React.createElement(SetupModal,{club:club,gatePass:gatePass(),firstRun:!club,onSave:function(c,p){setClub(c);setGatePass(p);setSetupOpen(false);},onClose:function(){setSetupOpen(false);}});
 
   var pData=result&&result.parsed||{};
   var _PF=FORMATS[pFmt]||FORMATS.poster;var _zf=(zoomPct||100)/100;var _pw=720;var pvScale=_pw*_zf/_PF.w,pvW=Math.round(_pw*_zf),pvH=Math.round(_PF.h*pvScale);var _zb={background:'transparent',border:'none',color:A.text2,fontSize:15,fontWeight:700,cursor:'pointer',width:22,height:22,lineHeight:'18px',padding:0,borderRadius:5};
