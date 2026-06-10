@@ -1,7 +1,0 @@
-{
-  "name": "limelight",
-  "private": true,
-  "dependencies": {
-    "@netlify/blobs": "*"
-  }
-}
