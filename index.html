@@ -1210,7 +1210,7 @@ function App(){
       img.onerror=function(){if(done)return;done=true;clearTimeout(to);go(i+1);};
       img.src=url;
     };
-    var gs=(r.w>r.h)?'1536x1024':(r.h>r.w?'1024x1536':'1024x1024');genGPT(full,gs,'medium',function(du,err){if(du){setImgUrl(du);setSpPhoto(du);setImgLoading(false);}else{go(0);}});
+    var gs=(r.w>r.h)?'1536x1024':(r.h>r.w?'1024x1536':'1024x1024');genGPT(full,gs,'medium',function(du,err){if(du){setImgUrl(du);setSpPhoto(du);setImgLoading(false);}else{setImgLoading(false);setError('Image failed: '+(err||'unknown error'));}});
   }
 
   function genBg(){
@@ -1229,7 +1229,7 @@ function App(){
       img.onerror=function(){if(done)return;done=true;clearTimeout(to);go(i+1);};
       img.src=url;
     };
-    genGPT(full,'1024x1536','medium',function(du,err){if(du){setImgUrl(du);setSpPhoto(du);setImgLoading(false);}else{go(0);}});
+    genGPT(full,'1024x1536','medium',function(du,err){if(du){setImgUrl(du);setSpPhoto(du);setImgLoading(false);}else{setImgLoading(false);setError('Image failed: '+(err||'unknown error'));}});
   }
 
   function comicStylePrompt(){
