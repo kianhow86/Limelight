@@ -1,16 +1,11 @@
 // netlify/functions/generate.mjs
-// Limelight backend proxy: validates a per-user access code, enforces a
-// monthly per-user generation cap, then calls Anthropic (text) or OpenAI
-// (images) with keys that live ONLY on the server (never in the HTML).
+// Limelight proxy (Option B): keys stay server-side, one shared gate password.
+// No storage, no per-user login, no dependencies — bundles cleanly.
 //
 // Required Netlify env vars:
-//   ANTHROPIC_KEY   - your Anthropic API key (powers all writing)
-//   OPENAI_KEY      - (optional) OpenAI key, only if you want hosted image gen
-//
-// User records are stored in Netlify Blobs under store "limelight-users":
-//   key = access code, value = { name, limit, used, period, active }
-
-import { getStore } from '@netlify/blobs';
+//   ANTHROPIC_KEY  - your Anthropic key (powers all writing)
+//   GATE_PASSWORD  - one shared password; the app asks users for it once
+//   OPENAI_KEY     - (optional) only if you want hosted image generation
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -25,21 +20,9 @@ export default async (req) => {
   let body;
   try { body = await req.json(); } catch { return json({ error: 'Bad request body' }, 400); }
 
-  const code = String(body.accessCode || '').trim();
-  if (!code) return json({ error: 'Missing access code' }, 401);
-
-  const users = getStore('limelight-users');
-  let rec;
-  try { rec = await users.get(code, { type: 'json' }); } catch { rec = null; }
-  if (!rec || rec.active === false) return json({ error: 'Invalid or disabled access code' }, 401);
-
-  // monthly reset
-  const period = new Date().toISOString().slice(0, 7); // YYYY-MM
-  if (rec.period !== period) { rec.period = period; rec.used = 0; }
-
-  const limit = rec.limit || 60;
-  if ((rec.used || 0) >= limit) {
-    return json({ error: 'Monthly limit reached (' + limit + '). It resets on the 1st.', limitReached: true, used: rec.used, limit }, 429);
+  // shared gate
+  if (!process.env.GATE_PASSWORD || String(body.pass || '') !== process.env.GATE_PASSWORD) {
+    return json({ error: 'Wrong or missing password' }, 401);
   }
 
   const kind = body.kind === 'image' ? 'image' : 'text';
@@ -69,12 +52,7 @@ export default async (req) => {
   if (!upstream.ok) {
     return json({ error: (data && data.error && data.error.message) || ('Upstream error ' + upstream.status) }, upstream.status);
   }
-
-  // only count a SUCCESSFUL generation against the cap
-  rec.used = (rec.used || 0) + 1;
-  try { await users.set(code, JSON.stringify(rec)); } catch { /* best-effort metering */ }
-
-  return json({ ok: true, used: rec.used, limit, data });
+  return json({ ok: true, data });
 };
 
 function json(obj, status = 200) {
