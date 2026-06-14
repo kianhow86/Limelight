@@ -36,7 +36,7 @@ var A=THEME_DARK;
 var SCHEMES=[{name:'Navy / Coral',bg:'#0A1626',acc:'#FF6B61',a2:'#E6B450'},{name:'Navy / Teal',bg:'#0A1626',acc:'#2DD4BF',a2:'#E6B450'},{name:'Royal / Lime',bg:'#1C3A8C',acc:'#C9D646',a2:'#C9D646'},{name:'Ink / Amber',bg:'#0C0C0F',acc:'#E6B450',a2:'#E6B450'},{name:'Plum / Violet',bg:'#1A1430',acc:'#8B7CF6',a2:'#E6B450'},{name:'Forest / Mint',bg:'#0C1F18',acc:'#34D399',a2:'#E6B450'},{name:'Charcoal / Coral',bg:'#15171C',acc:'#FF6B61',a2:'#E6B450'},{name:'Paper / Coral',bg:'#FFFFFF',acc:'#E5484D',a2:'#C99A2E'},{name:'Paper / Navy',bg:'#FFFFFF',acc:'#16345C',a2:'#B98B1E'}];
 var FORMATS={poster:{w:1080,h:1620,label:'Poster',ratio:'2:3'},xhs:{w:1080,h:1440,label:'小红书',ratio:'3:4',noLog:true},square:{w:1080,h:1080,label:'Square',ratio:'1:1',noCards:true},banner:{w:1080,h:460,label:'公众号 Banner',ratio:'2.35:1',wide:true}};
 var MTYPE_DESC={chapter:'Regular chapter meeting where members practise prepared and impromptu speaking.',sharing:'Sharing session — members exchange stories, lessons and experiences (less formal than a regular meeting).',workshop:'Skills workshop — attendees come to learn a specific communication or leadership skill.',contest:'Speech contest — competitive and higher-stakes; spotlight the contest, the contestants and what is at stake.',notice:'A NOTICE / ANNOUNCEMENT — there is NO regular speaking meeting this time (e.g. the meeting is cancelled, or it is a social outing or special announcement). The copy MUST clearly communicate the change and what is happening instead, and must NOT invite people to come and practise speaking.'};
-var TEMPLATES={spotlight:{label:'Spotlight'},overlay:{label:'Full-bleed'},editorial:{label:'Editorial'},typographic:{label:'Typographic'},speaker:{label:'Speaker'},magazine:{label:'Magazine'}};
+var TEMPLATES={spotlight:{label:'Spotlight'},split:{label:'Split'},overlay:{label:'Full-bleed'},editorial:{label:'Editorial'},typographic:{label:'Typographic'},speaker:{label:'Speaker'},magazine:{label:'Magazine'}};
 var SIZEMAP={s:0.85,m:1,l:1.22};
 var GRAD='linear-gradient(135deg,#14B8A6 0%,#6366F1 100%)';
 
@@ -643,6 +643,30 @@ function makePoster(form,poster,pData,imgUrl,spPhoto,bw,colors,qr,sizes,imgOpt,f
     oo+='</div>';
     oo+='</div>'+mottoStrip(true)+'</div>';
     return oo;
+  }
+
+  if(tpl==='split'){
+    var sPad=H<1200?40:54;
+    var topH=Math.round(H*0.66);
+    var ptx0=Math.round(W*0.60);var ptx1=Math.round(W*0.44);var gw=16;
+    var panelW=Math.round(W*0.52);
+    var oS='<div style="width:'+W+'px;height:'+H+'px;background:'+navy+';font-family:Barlow,sans-serif;color:'+txt+';position:relative;overflow:hidden;">';
+    if(portrait){oS+='<div style="position:absolute;top:0;left:0;right:0;height:'+topH+'px;overflow:hidden;z-index:1;"><div style="position:absolute;top:0;left:0;right:0;bottom:0;background-image:url(\''+portrait+'\');background-size:cover;background-position:'+ix+'% '+iy+'%;background-repeat:no-repeat;'+filt+'"></div></div>';}
+    else{oS+='<div style="position:absolute;top:0;left:0;right:0;height:'+topH+'px;background:linear-gradient(to bottom right,'+acc+','+navy+');z-index:1;"></div>';}
+    oS+='<svg width="'+W+'" height="'+topH+'" viewBox="0 0 '+W+' '+topH+'" style="position:absolute;top:0;left:0;z-index:2;" xmlns="http://www.w3.org/2000/svg"><polygon points="0,0 '+ptx0+',0 '+ptx1+','+topH+' 0,'+topH+'" fill="'+navy+'"></polygon><polygon points="'+ptx0+',0 '+(ptx0+gw)+',0 '+(ptx1+gw)+','+topH+' '+ptx1+','+topH+'" fill="'+acc2+'"></polygon></svg>';
+    if(issue)oS+='<div style="position:absolute;top:'+sPad+'px;right:'+sPad+'px;z-index:5;border:1px solid rgba(255,255,255,0.4);background:rgba(0,0,0,0.35);border-radius:8px;padding:7px 13px;"><span style="font-size:'+Math.round(20*hm)+'px;font-weight:800;letter-spacing:1px;color:#FFFFFF;">NO. '+escH(issue)+'</span></div>';
+    oS+='<div style="position:absolute;top:0;left:0;width:'+panelW+'px;height:'+topH+'px;z-index:3;box-sizing:border-box;padding:'+sPad+'px '+Math.round(sPad*0.7)+'px '+sPad+'px '+sPad+'px;display:flex;flex-direction:column;justify-content:space-between;">';
+    oS+='<div style="display:flex;align-items:center;gap:13px;">'+logoHTML+'<div><div style="font-family:'+dispFam+';font-size:'+Math.round(26*hm)+'px;font-weight:800;letter-spacing:1px;line-height:0.98;text-transform:uppercase;color:'+txt+';">'+club+'</div>'+(form.clubTagline?'<div style="font-size:'+Math.round(12*hm)+'px;font-weight:700;color:'+acc+';letter-spacing:2.5px;margin-top:4px;text-transform:uppercase;">'+escH(form.clubTagline)+'</div>':'')+'</div></div>';
+    oS+='<div>';
+    oS+='<div style="font-family:'+hfam+';font-size:'+Math.round(hsize*0.74)+'px;font-weight:'+hw+';line-height:0.96;letter-spacing:'+(cjk?'0':'-0.5px')+';text-transform:'+(cjk?'none':hlTT)+';" data-fit="hl">'+hl+(hlAcc?'<br/><span style="color:'+acc+';">'+hlAcc+'</span>':'')+'</div>';
+    oS+='<div style="width:64px;height:5px;background:'+acc2+';margin:18px 0 14px;"></div>';
+    if(sub)oS+='<div style="font-size:'+Math.round(19*sm)+'px;font-weight:500;color:'+wt('0.86')+';line-height:1.4;">'+sub+'</div>';
+    oS+='</div>';
+    oS+='</div>';
+    oS+='<div style="position:absolute;left:0;right:0;top:'+topH+'px;bottom:'+(showMotto?68:0)+'px;background:'+navy+';z-index:4;box-sizing:border-box;padding:'+Math.round(sPad*0.8)+'px '+sPad+'px;display:flex;align-items:center;">'+logiHTML(true,false)+'</div>';
+    oS+=mottoStrip(true);
+    oS+='</div>';
+    return oS;
   }
 
   if(tpl==='editorial'){
