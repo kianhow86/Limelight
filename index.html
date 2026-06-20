@@ -791,8 +791,11 @@ function antText(d){
 var BACKEND='/.netlify/functions/generate';
 function gatePass(){try{return localStorage.getItem('khcl_gate')||'';}catch(e){return '';}}
 function setGatePass(v){try{localStorage.setItem('khcl_gate',v||'');}catch(e){}}
-function backendText(payload){return fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pass:gatePass(),kind:'text',payload:payload})}).then(function(r){return r.json().then(function(d){if(!r.ok||!d||d.error){var e=new Error((d&&d.error)||('Error '+r.status));e.status=r.status;throw e;}return d.data;});});}
-function backendImage(payload){return fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pass:gatePass(),kind:'image',payload:payload})}).then(function(r){return r.json().then(function(d){if(!r.ok||!d||d.error){var e=new Error((d&&d.error)||('Error '+r.status));e.status=r.status;throw e;}return d.data;});});}
+function _doBackend(kind,payload){return fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pass:gatePass(),kind:kind,payload:payload})}).then(function(r){return r.text().then(function(t){var d=null;try{d=JSON.parse(t);}catch(pe){var looksHtml=((t||'').trim().charAt(0)==='<');var hint=(looksHtml||r.status>=500)?('The server returned an error page instead of data (HTTP '+r.status+'). This usually means the request timed out \u2014 retrying automatically; if it keeps failing, shorten your notes or lower the panel count.'):('Unexpected non-JSON response from the server (HTTP '+r.status+').');var pe2=new Error(hint);pe2.status=r.status;throw pe2;}if(!r.ok||!d||d.error){var e=new Error((d&&d.error)||('Error '+r.status));e.status=r.status;throw e;}return d.data;});});}
+  function _transient(e){if(!e)return false;var st=e.status;if(st==null)return true;return [408,425,429,500,502,503,504,522,524].indexOf(st)>=0;}
+  function _retry(fn,n){return fn().catch(function(e){if(n>0&&_transient(e)){return new Promise(function(res){setTimeout(res,(3-n)*700+400);}).then(function(){return _retry(fn,n-1);});}throw e;});}
+  function backendText(payload){return _retry(function(){return _doBackend('text',payload);},2);}
+  function backendImage(payload){return _retry(function(){return _doBackend('image',payload);},2);}
 function callClaude(key,form,selKeys,lang){
   return backendText({model:ANTH_MODEL,max_tokens:8000,system:makeSYS(selKeys,lang),messages:[{role:'user',content:buildPrompt(form)}]})
   .then(function(d){
