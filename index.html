@@ -581,7 +581,7 @@ function makePoster(form,poster,pData,imgUrl,spPhoto,bw,colors,qr,sizes,imgOpt,f
   var line=wt('0.10');
   function _WS(s){var w=(s||'').split(/\s+/).filter(function(x){return x;});return w.map(function(x,i){return '<span style="display:inline-block;margin-right:'+(i<w.length-1?'0.28em':'0')+'">'+x+'</span>';}).join('\u200b');}
   var club=_WS(escH((form.clubName||'CLUB NAME').toUpperCase()));
-  var tagline=escH(form.clubMotto||form.clubTagline||'');
+  var tagline=(H>W)?'':escH(form.clubMotto||form.clubTagline||'');
   var p=poster||{};
   var hlEsc=escH(p.headline||(pData.theme||'YOUR MEETING THEME').toUpperCase()).replace(/\*([^*|]+)\*/g,function(_m,_w){return _w.split(/\s+/).filter(function(x){return x;}).map(function(x){return '\u0001'+x+'\u0002';}).join(' ');});var hlAccEsc=escH(p.headline_accent||'');var hlBr=!!(sizes&&sizes.hlBr);var accBr=!!(sizes&&sizes.accBr);var hlTT=(sizes&&sizes.hlCase)?'none':'uppercase';function _SK(s){return s.split(/\s+/).filter(function(w){return w;}).join('<br/>');}function _LN(s,stk){if(s.indexOf('|')>=0){return s.split('|').map(function(x){return x.replace(/^\s+|\s+$/g,'');}).filter(function(x){return x;}).map(function(x){return stk?_SK(x):_WS(x);}).join('<br/>');}return stk?_SK(s):_WS(s);}var hl=_LN(hlEsc,hlBr);hl=hl.replace(/\u0001/g,'<span style="color:'+acc+'">').replace(/\u0002/g,'</span>');var hlen=hlEsc.length+hlAccEsc.length;
   var hlAcc=(sizes&&(sizes.hideTitle||sizes.hideAcc))?'':_LN(hlAccEsc,hlBr);
