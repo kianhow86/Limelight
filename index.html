@@ -792,15 +792,15 @@ function makePoster(form,poster,pData,imgUrl,spPhoto,bw,colors,qr,sizes,imgOpt,f
     if(isNotice){pp+='<div style="flex:0 0 auto;border-top:1px solid '+hair+';margin-top:'+Math.round(22*im)+'px;padding-top:'+Math.round(20*im)+'px;">'+noticeQR()+'</div>';}
     else if(!noLog){
       var _feeP=form.entranceFee?form.entranceFee.split('|').map(function(x){return escH(x.trim());}).join('<br/>'):'Free entry';
-      pp+='<div style="flex:0 0 auto;border-top:1px solid '+hair+';margin-top:'+Math.round(22*im)+'px;padding-top:'+Math.round(20*im)+'px;display:flex;align-items:flex-start;gap:'+Math.round(W*0.028)+'px;">';
-      var _pcell=function(lab,big,small,fx,ms){var _s=ms||1;return '<div style="flex:'+fx+';min-width:0;"><div style="font-size:'+Math.round(12*im*_s)+'px;font-weight:800;letter-spacing:'+Math.round(2.6*im)+'px;text-transform:uppercase;color:'+acc+';">'+lab+'</div><div style="font-size:'+Math.round(21*im*_s)+'px;font-weight:800;line-height:1.2;margin-top:'+Math.round(7*im)+'px;">'+big+'</div>'+(small?('<div style="font-size:'+Math.round(17*am*_s)+'px;color:'+soft+';line-height:1.32;margin-top:'+Math.round(3*am)+'px;">'+small+'</div>'):'')+'</div>';};
+      pp+='<div style="flex:0 0 auto;border-top:1px solid '+hair+';margin-top:'+Math.round(22*im)+'px;padding-top:'+Math.round(20*im)+'px;display:grid;grid-template-columns:1.15fr 1.6fr 1.15fr auto;align-items:start;gap:'+Math.round(W*0.034)+'px;">';
+      var _pcell=function(lab,big,small,fx,ms){var _s=ms||1;return '<div style="min-width:0;"><div style="font-size:'+Math.round(12*im*_s)+'px;font-weight:800;letter-spacing:'+Math.round(2.6*im)+'px;text-transform:uppercase;color:'+acc+';">'+lab+'</div><div style="font-size:'+Math.round(21*im*_s)+'px;font-weight:800;line-height:1.2;margin-top:'+Math.round(7*im)+'px;">'+big+'</div>'+(small?('<div style="font-size:'+Math.round(17*am*_s)+'px;color:'+soft+';line-height:1.32;margin-top:'+Math.round(3*am)+'px;">'+small+'</div>'):'')+'</div>';};
       var _dRaw=String(pData.date||'Date here').trim();
       var _dBits=_dRaw.split(',').map(function(x){return x.trim();}).filter(function(x){return x;});
       if(_dBits.length<2){var _m=_dRaw.match(/^(\S+)\s+(.*)$/);_dBits=_m?[_m[1],_m[2]]:[_dRaw];}
       var _tStr=String(pData.time||'').trim().replace(/\s*[-\u2013\u2014]\s*/g,'\u2013');
       var _wLines=_dBits.concat([_tStr]).filter(function(x){return x;});
       var _wSz=Math.round(23*im*1.0);
-      pp+='<div style="flex:1.45 1 0;min-width:0;padding-right:'+Math.round(W*0.02)+'px;">';
+      pp+='<div style="min-width:0;">';
       pp+='<div style="font-size:'+Math.round(12*im)+'px;font-weight:800;letter-spacing:'+Math.round(2.6*im)+'px;color:'+acc+';">WHEN</div>';
       pp+='<div style="margin-top:'+Math.round(7*im)+'px;">';
       for(var _wi=0;_wi<_wLines.length;_wi++){pp+='<div style="font-size:'+_wSz+'px;font-weight:800;line-height:1.24;overflow-wrap:break-word;">'+escH(_wLines[_wi].toUpperCase())+'</div>';}
@@ -809,7 +809,7 @@ function makePoster(form,poster,pData,imgUrl,spPhoto,bw,colors,qr,sizes,imgOpt,f
       pp+=_pcell('Entry',_feeP,'','0.9 1 0',_es);
       if(!noQR){
         var _qd=Math.round(W*0.078*_qs);
-        pp+='<div data-qrslot="1" style="cursor:pointer;flex:0 0 auto;text-align:center;">';
+        pp+='<div data-qrslot="1" style="cursor:pointer;text-align:center;">';
         if(qr)pp+='<img src="'+qr+'" style="width:'+_qd+'px;height:'+_qd+'px;object-fit:contain;background:#fff;display:block;"/>';
         else pp+='<div style="width:'+_qd+'px;height:'+_qd+'px;border:2px dashed '+hair+';display:flex;align-items:center;justify-content:center;text-align:center;"><span style="font-size:11px;color:'+soft+';line-height:1.5;">UPLOAD<br/>QR</span></div>';
         pp+='<div style="font-size:'+Math.round(11*im)+'px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;color:'+soft+';margin-top:'+Math.round(6*im)+'px;">Scan to join</div></div>';
