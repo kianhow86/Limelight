@@ -755,7 +755,7 @@ function makePoster(form,poster,pData,imgUrl,spPhoto,bw,colors,qr,sizes,imgOpt,f
     pp+='<div style="flex:0 0 auto;font-size:'+Math.round(16*hm)+'px;font-weight:600;letter-spacing:'+Math.round(2.4*hm)+'px;text-transform:uppercase;color:'+soft+';white-space:nowrap;">'+(issue?('MEETING '+escH(issue)):escH(dateStr||''))+'</div>';
     pp+='</div>';
     pp+='<div style="flex:0 0 auto;height:'+Math.max(2,Math.round(4*hm))+'px;background:'+txt+';margin-top:'+Math.round(14*hm)+'px;"></div>';
-    if(hl)pp+='<div style="flex:0 0 auto;font-family:'+hfam+';font-size:'+_tsz+'px;font-weight:'+hw+';line-height:0.9;letter-spacing:-'+Math.round(_tsz*0.03)+'px;margin-top:'+Math.round(26*hm)+'px;overflow-wrap:break-word;text-transform:'+(cjk?'none':hlTT)+';transform:translate('+spkX+'px,'+spkY+'px);'+hlWcss+hlTf+'" data-fit="hl">'+hl+(hlAcc&&accLinkedV?' <span data-acc="1" style="color:'+acc+'">'+hlAcc+'</span>':'')+'</div>';
+    if(hl)pp+='<div style="flex:0 0 auto;font-family:'+hfam+';font-size:'+_tsz+'px;font-weight:'+hw+';line-height:0.9;letter-spacing:-'+Math.round(_tsz*0.03)+'px;margin-top:'+Math.round(26*hm)+'px;overflow-wrap:break-word;text-transform:'+(cjk?'none':hlTT)+';'+hlWcss+hlTf+'" data-fit="hl">'+hl+(hlAcc&&accLinkedV?' <span data-acc="1" style="color:'+acc+'">'+hlAcc+'</span>':'')+'</div>';
     if(hlAcc&&!accLinkedV)pp+='<div data-acc="1" style="flex:0 0 auto;color:'+acc+';font-family:'+hfam+';font-weight:'+hw+';font-size:'+Math.round(_tsz*accMv)+'px;line-height:0.9;letter-spacing:-'+Math.round(_tsz*0.03)+'px;overflow-wrap:break-word;text-transform:'+accTTv+';transform:translate('+accXv+'px,'+accYv+'px);'+accWcss+'">'+hlAcc+'</div>';
     (showRuleV)&&(pp+='<div data-rule="1" style="flex:0 0 auto;width:'+Math.round(76*hm)+'px;height:4px;background:'+acc+';margin:'+Math.round(18*hm)+'px 0 0;transform:translate('+rlX+'px,'+rlY+'px);cursor:move;"></div>');
     pp+='<div style="flex:1 1 auto;min-height:0;display:flex;gap:'+Math.round(W*0.038)+'px;padding-top:'+Math.round(30*hm)+'px;">';
@@ -787,13 +787,13 @@ function makePoster(form,poster,pData,imgUrl,spPhoto,bw,colors,qr,sizes,imgOpt,f
     if(isNotice){pp+='<div style="flex:0 0 auto;border-top:1px solid '+hair+';margin-top:'+Math.round(22*im)+'px;padding-top:'+Math.round(20*im)+'px;">'+noticeQR()+'</div>';}
     else if(!noLog){
       var _feeP=form.entranceFee?form.entranceFee.split('|').map(function(x){return escH(x.trim());}).join('<br/>'):'Free entry';
-      pp+='<div style="flex:0 0 auto;border-top:1px solid '+hair+';margin-top:'+Math.round(22*im)+'px;padding-top:'+Math.round(20*im)+'px;display:flex;align-items:flex-start;gap:'+Math.round(W*0.042)+'px;">';
+      pp+='<div style="flex:0 0 auto;border-top:1px solid '+hair+';margin-top:'+Math.round(22*im)+'px;padding-top:'+Math.round(20*im)+'px;display:flex;align-items:flex-start;gap:'+Math.round(W*0.028)+'px;">';
       var _pcell=function(lab,big,small,fx){return '<div style="flex:'+fx+';min-width:0;"><div style="font-size:'+Math.round(12*im)+'px;font-weight:800;letter-spacing:'+Math.round(2.6*im)+'px;text-transform:uppercase;color:'+acc+';">'+lab+'</div><div style="font-size:'+Math.round(21*im)+'px;font-weight:800;line-height:1.2;margin-top:'+Math.round(7*im)+'px;">'+big+'</div>'+(small?('<div style="font-size:'+Math.round(17*am)+'px;color:'+soft+';line-height:1.32;margin-top:'+Math.round(3*am)+'px;">'+small+'</div>'):'')+'</div>';};
-      pp+=_pcell('When',escH(pData.date||'Date here'),escH(pData.time||''),'1');
-      pp+=_pcell('Where',escH(pData.location||'Venue here'),escH(pData.addressLine2||''),'1.5');
-      pp+=_pcell('Entry',_feeP,'','0 0 auto');
+      pp+=_pcell('When',escH(pData.date||'Date here'),escH(pData.time||''),'1.15');
+      pp+=_pcell('Where',escH(pData.location||'Venue here'),escH(pData.addressLine2||''),'1.8');
+      pp+=_pcell('Entry',_feeP,'','1');
       if(!noQR){
-        var _qd=Math.round(W*0.088);
+        var _qd=Math.round(W*0.078);
         pp+='<div data-qrslot="1" style="cursor:pointer;flex:0 0 auto;text-align:center;">';
         if(qr)pp+='<img src="'+qr+'" style="width:'+_qd+'px;height:'+_qd+'px;object-fit:contain;background:#fff;display:block;"/>';
         else pp+='<div style="width:'+_qd+'px;height:'+_qd+'px;border:2px dashed '+hair+';display:flex;align-items:center;justify-content:center;text-align:center;"><span style="font-size:11px;color:'+soft+';line-height:1.5;">UPLOAD<br/>QR</span></div>';
