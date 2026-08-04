@@ -800,13 +800,13 @@ function makePoster(form,poster,pData,imgUrl,spPhoto,bw,colors,qr,sizes,imgOpt,f
       var _tStr=String(pData.time||'').trim().replace(/\s*[-\u2013\u2014]\s*/g,'\u2013');
       var _wLines=_dBits.concat([_tStr]).filter(function(x){return x;});
       var _wSz=Math.round(23*im*1.0);
-      pp+='<div style="flex:1.45 1 auto;min-width:0;padding-right:'+Math.round(W*0.02)+'px;">';
+      pp+='<div style="flex:1.45 1 0;min-width:0;padding-right:'+Math.round(W*0.02)+'px;">';
       pp+='<div style="font-size:'+Math.round(12*im)+'px;font-weight:800;letter-spacing:'+Math.round(2.6*im)+'px;color:'+acc+';">WHEN</div>';
       pp+='<div style="margin-top:'+Math.round(7*im)+'px;">';
-      for(var _wi=0;_wi<_wLines.length;_wi++){pp+='<div style="font-size:'+_wSz+'px;font-weight:800;line-height:1.24;white-space:nowrap;">'+escH(_wLines[_wi].toUpperCase())+'</div>';}
+      for(var _wi=0;_wi<_wLines.length;_wi++){pp+='<div style="font-size:'+_wSz+'px;font-weight:800;line-height:1.24;overflow-wrap:break-word;">'+escH(_wLines[_wi].toUpperCase())+'</div>';}
       pp+='</div></div>';
-      pp+=_pcell('Where',escH(pData.location||'Venue here'),escH(pData.addressLine2||''),'1.6 1 auto');
-      pp+=_pcell('Entry',_feeP,'','0.9 1 auto',_es);
+      pp+=_pcell('Where',escH(pData.location||'Venue here'),escH(pData.addressLine2||''),'1.6 1 0');
+      pp+=_pcell('Entry',_feeP,'','0.9 1 0',_es);
       if(!noQR){
         var _qd=Math.round(W*0.078*_qs);
         pp+='<div data-qrslot="1" style="cursor:pointer;flex:0 0 auto;text-align:center;">';
