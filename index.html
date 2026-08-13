@@ -654,7 +654,7 @@ function makePoster(form,poster,pData,imgUrl,spPhoto,bw,colors,qr,sizes,imgOpt,f
     var _bnT=function(ix){var _q=_bit[ix]||{};return 'transform:translate('+((_q.x)||0)+'px,'+((_q.y)||0)+'px);';};
     // the 1:1 crop WeChat takes: a centred square the full height of the banner
     var _sq=H;var _fl=Math.round((W-_sq)/2);
-    var _strip=Math.round(H*0.295);
+    var _strip=Math.min(Math.round(H*0.45),Math.round(H*0.375*Math.max(1,Math.min(1.6,bi))));
     var _pad=Math.round(H*0.058);
     var _tf=(hlen<=8?0.30:hlen<=14?0.245:hlen<=22?0.185:hlen<=34?0.142:0.116);
     var _tsz=Math.round(_sq*_tf*hlm/2);
@@ -685,10 +685,10 @@ function makePoster(form,poster,pData,imgUrl,spPhoto,bw,colors,qr,sizes,imgOpt,f
 
     // ── CENTRE: the 1:1 square ──
     ob+='<div style="position:absolute;left:'+_fl+'px;top:0;width:'+_sq+'px;height:'+(H-_strip)+'px;background:'+navy+';padding:'+_pad+'px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;z-index:4;">';
-    ob+='<div data-bnr="2" style="cursor:move;display:flex;align-items:center;gap:'+Math.round(10*bi*_bnS(2))+'px;'+_bnT(2)+'">';
-    if(form.clubLogo)ob+='<img src="'+form.clubLogo+'" style="height:'+Math.round(H*0.062*bi*_bnS(2))+'px;width:auto;object-fit:contain;display:block;"/>';
-    ob+='<div style="font-size:'+Math.round(H*0.030*bi*_bnS(2))+'px;font-weight:800;letter-spacing:'+Math.round(2.8*bi)+'px;text-transform:uppercase;color:'+txt+';white-space:nowrap;">'+club+'</div>';
-    if(issue)ob+='<div data-bnr="0" style="cursor:move;'+_bnT(0)+'font-size:'+Math.round(H*0.024*bi*_bnS(0))+'px;font-weight:700;letter-spacing:'+Math.round(1.6*bi)+'px;text-transform:uppercase;color:'+wt('0.45')+';white-space:nowrap;">No. '+escH(issue)+'</div>';
+    ob+='<div style="display:flex;align-items:center;gap:'+Math.round(10*bi)+'px;">';
+    if(form.clubLogo)ob+='<img src="'+form.clubLogo+'" style="height:'+Math.round(H*0.062*bi)+'px;width:auto;object-fit:contain;display:block;"/>';
+    ob+='<div style="font-size:'+Math.round(H*0.030*bi)+'px;font-weight:800;letter-spacing:'+Math.round(2.8*bi)+'px;text-transform:uppercase;color:'+txt+';white-space:nowrap;">'+club+'</div>';
+    if(issue)ob+='<div style="font-size:'+Math.round(H*0.024*bi)+'px;font-weight:700;letter-spacing:'+Math.round(1.6*bi)+'px;text-transform:uppercase;color:'+wt('0.45')+';white-space:nowrap;">No. '+escH(issue)+'</div>';
     ob+='</div>';
     ob+='<div style="min-width:0;">';
     if(hl)ob+='<div style="font-family:'+hfam+';font-weight:'+hw+';font-size:'+_tsz+'px;line-height:0.86;letter-spacing:-'+Math.round(_tsz*0.014)+'px;text-transform:'+(cjk?'none':hlTT)+';overflow-wrap:break-word;'+hlWcss+hlTf+'" data-fit="hl">'+hl+(hlAcc&&accLinkedV?' <span data-acc="1" style="color:'+acc+'">'+hlAcc+'</span>':'')+'</div>';
@@ -699,15 +699,15 @@ function makePoster(form,poster,pData,imgUrl,spPhoto,bw,colors,qr,sizes,imgOpt,f
     ob+='</div>';
 
     // ── CENTRE STRIP: when / where / QR (accent, centre block only) ──
-    ob+='<div data-bnr="1" style="cursor:move;'+_bnT(1)+'position:absolute;left:'+_fl+'px;bottom:0;width:'+_sq+'px;height:'+_strip+'px;background:'+acc+';padding:'+Math.round(_pad*0.82)+'px '+_pad+'px;box-sizing:border-box;display:flex;align-items:center;gap:'+Math.round(_pad*0.8)+'px;z-index:5;">';
+    ob+='<div style="position:absolute;left:'+_fl+'px;bottom:0;width:'+_sq+'px;height:'+_strip+'px;background:'+acc+';padding:'+Math.round(_pad*0.7)+'px '+_pad+'px;box-sizing:border-box;display:flex;align-items:center;gap:'+Math.round(_pad*0.6)+'px;z-index:5;overflow:hidden;">';
     ob+='<div style="min-width:0;">';
-    ob+='<div style="font-size:'+Math.round(H*0.024*bi*_bnS(1))+'px;font-weight:800;letter-spacing:'+Math.round(2.2*bi)+'px;text-transform:uppercase;color:'+_sa('0.62')+';">When &amp; where</div>';
-    ob+='<div style="font-size:'+Math.round(H*0.048*bi*_bnS(1))+'px;font-weight:900;line-height:1.12;margin-top:'+Math.round(H*0.008)+'px;color:'+_accOnStrip+';">'+escH(pData.date||'Date here')+(pData.time?(' &middot; '+escH(pData.time)):'')+'</div>';
+    ob+='<div style="font-size:'+Math.round(H*0.021*bi)+'px;font-weight:800;letter-spacing:'+Math.round(2*bi)+'px;text-transform:uppercase;color:'+_sa('0.62')+';">When &amp; where</div>';
+    ob+='<div style="font-size:'+Math.round(H*0.037*bi)+'px;font-weight:900;line-height:1.08;margin-top:'+Math.round(H*0.007)+'px;color:'+_accOnStrip+';">'+escH(pData.date||'Date here')+(pData.time?(' &middot; '+escH(pData.time)):'')+'</div>';
     var _w2=[escH(pData.location||''),escH(pData.addressLine2||''),(form.entranceFee?escH(String(form.entranceFee).split('|')[0].trim()):'')].filter(function(x){return x;}).join(' &middot; ');
-    if(_w2)ob+='<div style="font-size:'+Math.round(H*0.032*bi*_bnS(1))+'px;font-weight:600;line-height:1.24;margin-top:'+Math.round(H*0.005)+'px;color:'+_sa('0.74')+';">'+_w2+'</div>';
+    if(_w2)ob+='<div style="font-size:'+Math.round(H*0.025*bi)+'px;font-weight:600;line-height:1.2;margin-top:'+Math.round(H*0.006)+'px;color:'+_sa('0.74')+';">'+_w2+'</div>';
     ob+='</div>';
     if(!noQR){
-      var _qd=Math.round(_strip*0.62*bi);
+      var _qd=Math.round(_strip*0.46);
       ob+='<div data-qrslot="1" style="cursor:pointer;margin-left:auto;flex:0 0 auto;">';
       if(qr)ob+='<img src="'+qr+'" style="width:'+_qd+'px;height:'+_qd+'px;object-fit:contain;background:'+_accOnStrip+';display:block;"/>';
       else ob+='<div style="width:'+_qd+'px;height:'+_qd+'px;border:2px dashed '+_sa('0.4')+';display:flex;align-items:center;justify-content:center;text-align:center;"><span style="font-size:'+Math.round(_qd*0.13)+'px;font-weight:700;color:'+_sa('0.6')+';line-height:1.4;">QR</span></div>';
